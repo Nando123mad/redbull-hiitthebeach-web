@@ -1,42 +1,354 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --ink: #0f172a;
+  --muted: #5b6782;
+  --bg: #e8eef5;
+  --accent: #e03a4e;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
+}
+
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+body {
   margin: 0;
+  background: #000;
+  /* clean letterbox if not 9:16 */
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  user-select: none;
+  overflow: hidden;
+  -webkit-touch-callout: none;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* 9:16 stage that scales; on 2160x3840 it’s pixel-perfect */
+.kiosk-root {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+.kiosk-root::before {
+  content: "";
+  width: min(100vw, 2160px);
+  height: calc(min(100vw, 2160px) * 16 / 9);
+  max-height: min(100vh, 3840px);
+  max-width: calc(min(100vh, 3840px) * 9 / 16);
+}
+
+.kiosk-root>* {
+  position: absolute;
+  inset: 0;
+}
+
+.bg-pattern {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+
+.bg-pattern::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(32, 52, 89, .08) 25%, transparent 25%) 0 0/80px 80px,
+    linear-gradient(300deg, rgba(32, 52, 89, .05) 25%, transparent 25%) 0 0/120px 120px;
+  pointer-events: none;
+  filter: saturate(.8);
+}
+
+.screen {
+  /* position: relative; */
+  width: 100%;
+  height: 100%;
+  padding: clamp(24px, 3vh, 64px);
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.center-col {
+  display: grid;
+  align-content: center;
+  gap: clamp(16px, 2vh, 32px);
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gap {
+  gap: clamp(12px, 1.6vh, 28px);
+}
+
+.hero {
+  font-size: clamp(48px, 6.5vh, 160px);
+  margin: 0 0 .5vh;
+  line-height: 1.05;
+}
+
+.hero .accent {
+  color: var(--accent);
+}
+
+.title {
+  font-size: clamp(32px, 4.2vh, 96px);
+  margin: 0 0 1vh;
+}
+
+.sub {
+  color: var(--muted);
+  margin-top: -.5vh;
+  font-size: clamp(18px, 2.2vh, 40px);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-pill {
+  border: 0;
+  cursor: pointer;
+  border-radius: 2vh;
+  padding: clamp(12px, 1.8vh, 28px) clamp(18px, 2.8vh, 48px);
+  font-weight: 800;
+  font-size: clamp(18px, 2.4vh, 40px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary.xl {
+  font-size: clamp(22px, 3vh, 52px);
+  padding: clamp(16px, 2.4vh, 34px) clamp(22px, 3.2vh, 56px);
+  border-radius: 3vh;
+}
+
+.btn-primary:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--ink);
+  border: .5vh solid #d4dbe6;
+}
+
+.form-screen .form {
+  display: grid;
+  gap: clamp(10px, 1.6vh, 24px);
+  width: min(56vw, 1200px);
+  text-align: left;
+}
+
+.form label {
+  font-weight: 700;
+  font-size: clamp(16px, 2.2vh, 36px);
+  color: var(--muted);
+  display: grid;
+  gap: .8vh;
+}
+
+.form input {
+  border: .5vh solid #c9d2e2;
+  border-radius: 2vh;
+  padding: clamp(12px, 1.6vh, 24px) clamp(14px, 2vh, 28px);
+  font-size: clamp(18px, 2.6vh, 40px);
+  font-weight: 700;
+  color: var(--ink);
+  background: #fbfdff;
+}
+
+.time-card {
+  background: #b7c6d4;
+  border-radius: 3vh;
+  padding: 3vh;
+  width: min(62vw, 1400px);
+  display: grid;
+  gap: 1vh;
+  justify-items: start;
+}
+
+.time-label {
+  color: #d73a4a;
+  font-size: clamp(22px, 3vh, 46px);
+  font-weight: 800;
+}
+
+.time-input {
+  width: 100%;
+  font-family: "Seven Segment", ui-monospace, monospace;
+  font-size: clamp(56px, 10vh, 200px);
+  font-weight: 800;
+  letter-spacing: .3vh;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+}
+
+.unit {
+  font-weight: 800;
+  color: #1F2A44;
+  font-size: clamp(18px, 2.4vh, 40px);
+}
+
+.unit.alt {
+  opacity: .85;
+}
+
+.camera-screen .camera-wrap {
+  width: min(80vw, 1800px);
+  aspect-ratio: 16/9;
+  border-radius: 2.2vh;
+  overflow: hidden;
+  box-shadow: 0 1vh 3vh rgba(0, 0, 0, .18);
+  border: .6vh solid #d1dbe7;
+  background: #000;
+  position: relative;
+}
+
+.camera-screen .video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hidden-canvas {
+  display: none;
+}
+
+.hint {
+  color: var(--muted);
+  margin-top: 1vh;
+  font-size: clamp(16px, 2vh, 36px);
+}
+
+/* Countdown */
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .35);
+}
+
+.count-number {
+  font-size: clamp(80px, 18vh, 520px);
+  color: #fff;
+  font-weight: 900;
+  text-shadow: 0 1vh 3vh rgba(0, 0, 0, .5);
+  animation: pop .9s ease;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(.6);
+    opacity: .6
   }
+
+  60% {
+    transform: scale(1.05);
+    opacity: 1
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1
+  }
+}
+
+.review-screen .stat-card {
+  width: min(84vw, 1600px);
+  background: #b7c6d4;
+  border-radius: 3.2vh;
+  padding: 3vh 2.6vh 4vh;
+  display: grid;
+  gap: 1.4vh;
+  justify-items: center;
+  position: relative;
+}
+
+.avatar-wrap {
+  position: absolute;
+  top: -10vh;
+}
+
+.avatar {
+  width: clamp(180px, 20vh, 360px);
+  height: clamp(180px, 20vh, 360px);
+  object-fit: cover;
+  border-radius: 999px;
+  border: 1.2vh solid white;
+  box-shadow: 0 1vh 2.4vh rgba(0, 0, 0, .15);
+}
+
+.stat-block {
+  margin-top: 12vh;
+  text-align: center;
+}
+
+.label {
+  color: #d73a4a;
+  font-weight: 900;
+  letter-spacing: .04em;
+  font-size: clamp(18px, 2.8vh, 44px);
+}
+
+.value {
+  color: #fff;
+  font-weight: 900;
+  font-family: "Seven Segment", ui-monospace, monospace;
+  font-size: clamp(48px, 7vh, 140px);
+}
+
+.value.big {
+  font-size: clamp(72px, 10vh, 200px);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2vh;
+  width: 100%;
+  margin-top: 1vh;
+}
+
+.stat {
+  background: rgba(255, 255, 255, .12);
+  padding: 2vh;
+  border-radius: 2vh;
+}
+
+.btn-pill.share {
+  margin-top: 2vh;
+  padding: 2vh 6vh;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: clamp(22px, 3vh, 48px);
+}
+
+.status {
+  color: var(--ink);
+  margin-top: 1vh;
+  font-weight: 700;
+  font-size: clamp(16px, 2vh, 36px);
+}
+
+@font-face {
+  font-family: "Seven Segment";
+  src: local("DS-Digital"), local("SevenSegment"),
+    url("https://fonts.cdnfonts.com/s/16728/DS-DIGI.woff") format("woff");
+  font-display: swap;
 }
