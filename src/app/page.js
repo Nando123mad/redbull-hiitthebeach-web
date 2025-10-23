@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./globals.css";
-import VirtualKeyboard from "../components/VirtualKeyboard";
 import { renderShareCard } from "../lib/shareCard";
 
 const Steps = {
