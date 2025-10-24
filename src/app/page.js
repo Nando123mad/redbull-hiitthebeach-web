@@ -150,40 +150,44 @@ export default function Page() {
     return haveBasics && !!phone;
   }, [form, courseTime, avatar, phone, channel]);
 
-  const share = async () => {
-    setBusy(true); setShareMessage("");
-    try {
-      const payload =
-        channel === "email"
-          ? {
-              channel: "email",
-              to: form.email,
-              name: form.name,
-              time: courseTime,
-              attachmentDataUrl: await renderShareCard({ name: form.name, time: courseTime, avatar }),
-            }
-          : {
-              channel: "phone",
-              to: normalizePhone(phone),
-              name: form.name,
-              time: courseTime
-            };
+const share = async () => {
+  setBusy(true); setShareMessage("");
+  try {
+    const card = await renderShareCard({ name: form.name, time: courseTime, avatar });
 
-      const res = await fetch("/api/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error((await res.json()).error || "Send failed");
+    const payload =
+      channel === "email"
+        ? {
+            channel: "email",
+            to: form.email,
+            name: form.name,
+            time: courseTime,
+            attachmentDataUrl: card,
+          }
+        : {
+            channel: "phone",
+            to: normalizePhone(phone),
+            name: form.name,
+            time: courseTime,
+            attachmentDataUrl: card, // <-- send full card as MMS
+          };
 
-      setStep(Steps.THANKS);
-    } catch (e) {
-      console.error(e);
-      setShareMessage(e.message || "Couldn’t send.");
-    } finally {
-      setBusy(false);
-    }
-  };
+    const res = await fetch("/api/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error((await res.json()).error || "Send failed");
+
+    setStep(Steps.THANKS);
+  } catch (e) {
+    console.error(e);
+    setShareMessage(e.message || "Couldn’t send.");
+  } finally {
+    setBusy(false);
+  }
+};
 
   return (
     <div className="kiosk-root">
