@@ -2,66 +2,63 @@
   --ink: #0f172a;
   --muted: #5b6782;
   --bg: #e8eef5;
-  --accent: #e03a4e;
+  --accent: #e03a4e
 }
 
 * {
-  box-sizing: border-box;
+  box-sizing: border-box
 }
 
 html,
 body,
 #__next {
-  height: 100%;
+  height: 100%
 }
 
 body {
   margin: 0;
   background: #000;
-  /* clean letterbox if not 9:16 */
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--ink);
   user-select: none;
   overflow: hidden;
-  -webkit-touch-callout: none;
+  -webkit-touch-callout: none
 }
 
-/* 9:16 stage that scales; on 2160x3840 it’s pixel-perfect */
+/* 9:16 stage that scales; pixel-perfect on 2160x3840 */
 .kiosk-root {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  place-items: center
 }
 
 .kiosk-root::before {
   content: "";
   width: min(100vw, 2160px);
-  height: calc(min(100vw, 2160px) * 16 / 9);
+  height: calc(min(100vw, 2160px)*16/9);
   max-height: min(100vh, 3840px);
-  max-width: calc(min(100vh, 3840px) * 9 / 16);
+  max-width: calc(min(100vh, 3840px)*9/16)
 }
 
 .kiosk-root>* {
   position: absolute;
-  inset: 0;
+  inset: 0
 }
 
 .bg-pattern {
   position: absolute;
   inset: 0;
-  background: var(--bg);
+  background: var(--bg)
 }
 
 .bg-pattern::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(120deg, rgba(32, 52, 89, .08) 25%, transparent 25%) 0 0/80px 80px,
-    linear-gradient(300deg, rgba(32, 52, 89, .05) 25%, transparent 25%) 0 0/120px 120px;
+  background: linear-gradient(120deg, rgba(32, 52, 89, .08) 25%, transparent 25%) 0 0/80px 80px, linear-gradient(300deg, rgba(32, 52, 89, .05) 25%, transparent 25%) 0 0/120px 120px;
   pointer-events: none;
-  filter: saturate(.8);
+  filter: saturate(.8)
 }
 
 .screen {
@@ -71,44 +68,44 @@ body {
   padding: clamp(24px, 3vh, 64px);
   display: grid;
   place-items: center;
-  text-align: center;
+  text-align: center
 }
 
 .center-col {
   display: grid;
   align-content: center;
-  gap: clamp(16px, 2vh, 32px);
+  gap: clamp(16px, 2vh, 32px)
 }
 
 .row {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center
 }
 
 .gap {
-  gap: clamp(12px, 1.6vh, 28px);
+  gap: clamp(12px, 1.6vh, 28px)
 }
 
 .hero {
   font-size: clamp(48px, 6.5vh, 160px);
   margin: 0 0 .5vh;
-  line-height: 1.05;
+  line-height: 1.05
 }
 
 .hero .accent {
-  color: var(--accent);
+  color: var(--accent)
 }
 
 .title {
   font-size: clamp(32px, 4.2vh, 96px);
-  margin: 0 0 1vh;
+  margin: 0 0 1vh
 }
 
 .sub {
   color: var(--muted);
   margin-top: -.5vh;
-  font-size: clamp(18px, 2.2vh, 40px);
+  font-size: clamp(18px, 2.2vh, 40px)
 }
 
 .btn-primary,
@@ -119,36 +116,36 @@ body {
   border-radius: 2vh;
   padding: clamp(12px, 1.8vh, 28px) clamp(18px, 2.8vh, 48px);
   font-weight: 800;
-  font-size: clamp(18px, 2.4vh, 40px);
+  font-size: clamp(18px, 2.4vh, 40px)
 }
 
 .btn-primary {
   background: var(--accent);
-  color: white;
+  color: #fff
 }
 
 .btn-primary.xl {
   font-size: clamp(22px, 3vh, 52px);
   padding: clamp(16px, 2.4vh, 34px) clamp(22px, 3.2vh, 56px);
-  border-radius: 3vh;
+  border-radius: 3vh
 }
 
 .btn-primary:disabled {
   opacity: .5;
-  cursor: not-allowed;
+  cursor: not-allowed
 }
 
 .btn-secondary {
-  background: white;
+  background: #fff;
   color: var(--ink);
-  border: .5vh solid #d4dbe6;
+  border: .5vh solid #d4dbe6
 }
 
 .form-screen .form {
   display: grid;
   gap: clamp(10px, 1.6vh, 24px);
   width: min(56vw, 1200px);
-  text-align: left;
+  text-align: left
 }
 
 .form label {
@@ -156,7 +153,7 @@ body {
   font-size: clamp(16px, 2.2vh, 36px);
   color: var(--muted);
   display: grid;
-  gap: .8vh;
+  gap: .8vh
 }
 
 .form input {
@@ -166,7 +163,7 @@ body {
   font-size: clamp(18px, 2.6vh, 40px);
   font-weight: 700;
   color: var(--ink);
-  background: #fbfdff;
+  background: #fbfdff
 }
 
 .time-card {
@@ -176,13 +173,13 @@ body {
   width: min(62vw, 1400px);
   display: grid;
   gap: 1vh;
-  justify-items: start;
+  justify-items: start
 }
 
 .time-label {
   color: #d73a4a;
   font-size: clamp(22px, 3vh, 46px);
-  font-weight: 800;
+  font-weight: 800
 }
 
 .time-input {
@@ -194,17 +191,17 @@ body {
   border: none;
   outline: none;
   background: transparent;
-  color: #fff;
+  color: #fff
 }
 
 .unit {
   font-weight: 800;
   color: #1F2A44;
-  font-size: clamp(18px, 2.4vh, 40px);
+  font-size: clamp(18px, 2.4vh, 40px)
 }
 
 .unit.alt {
-  opacity: .85;
+  opacity: .85
 }
 
 .camera-screen .camera-wrap {
@@ -215,32 +212,31 @@ body {
   box-shadow: 0 1vh 3vh rgba(0, 0, 0, .18);
   border: .6vh solid #d1dbe7;
   background: #000;
-  position: relative;
+  position: relative
 }
 
 .camera-screen .video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover
 }
 
 .hidden-canvas {
-  display: none;
+  display: none
 }
 
 .hint {
   color: var(--muted);
   margin-top: 1vh;
-  font-size: clamp(16px, 2vh, 36px);
+  font-size: clamp(16px, 2vh, 36px)
 }
 
-/* Countdown */
 .countdown {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, .35);
+  background: rgba(0, 0, 0, .35)
 }
 
 .count-number {
@@ -248,7 +244,7 @@ body {
   color: #fff;
   font-weight: 900;
   text-shadow: 0 1vh 3vh rgba(0, 0, 0, .5);
-  animation: pop .9s ease;
+  animation: pop .9s ease
 }
 
 @keyframes pop {
@@ -276,12 +272,12 @@ body {
   display: grid;
   gap: 1.4vh;
   justify-items: center;
-  position: relative;
+  position: relative
 }
 
 .avatar-wrap {
   position: absolute;
-  top: -10vh;
+  top: -10vh
 }
 
 .avatar {
@@ -289,31 +285,31 @@ body {
   height: clamp(180px, 20vh, 360px);
   object-fit: cover;
   border-radius: 999px;
-  border: 1.2vh solid white;
-  box-shadow: 0 1vh 2.4vh rgba(0, 0, 0, .15);
+  border: 1.2vh solid #fff;
+  box-shadow: 0 1vh 2.4vh rgba(0, 0, 0, .15)
 }
 
 .stat-block {
   margin-top: 12vh;
-  text-align: center;
+  text-align: center
 }
 
 .label {
   color: #d73a4a;
   font-weight: 900;
   letter-spacing: .04em;
-  font-size: clamp(18px, 2.8vh, 44px);
+  font-size: clamp(18px, 2.8vh, 44px)
 }
 
 .value {
   color: #fff;
   font-weight: 900;
   font-family: "Seven Segment", ui-monospace, monospace;
-  font-size: clamp(48px, 7vh, 140px);
+  font-size: clamp(48px, 7vh, 140px)
 }
 
 .value.big {
-  font-size: clamp(72px, 10vh, 200px);
+  font-size: clamp(72px, 10vh, 200px)
 }
 
 .stat-row {
@@ -321,13 +317,13 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 2vh;
   width: 100%;
-  margin-top: 1vh;
+  margin-top: 1vh
 }
 
 .stat {
   background: rgba(255, 255, 255, .12);
   padding: 2vh;
-  border-radius: 2vh;
+  border-radius: 2vh
 }
 
 .btn-pill.share {
@@ -336,19 +332,18 @@ body {
   border-radius: 999px;
   background: var(--accent);
   color: #fff;
-  font-size: clamp(22px, 3vh, 48px);
+  font-size: clamp(22px, 3vh, 48px)
 }
 
 .status {
   color: var(--ink);
   margin-top: 1vh;
   font-weight: 700;
-  font-size: clamp(16px, 2vh, 36px);
+  font-size: clamp(16px, 2vh, 36px)
 }
 
 @font-face {
   font-family: "Seven Segment";
-  src: local("DS-Digital"), local("SevenSegment"),
-    url("https://fonts.cdnfonts.com/s/16728/DS-DIGI.woff") format("woff");
+  src: local("DS-Digital"), local("SevenSegment"), url("https://fonts.cdnfonts.com/s/16728/DS-DIGI.woff") format("woff");
   font-display: swap;
 }

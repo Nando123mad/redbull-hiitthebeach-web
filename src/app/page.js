@@ -16,18 +16,13 @@ const Steps = {
 
 export default function Page() {
   const [step, setStep] = useState(Steps.CTA);
-
-  // NEW: contact method & value
-  const [contactMethod, setContactMethod] = useState("email"); // "email" | "phone"
-  const [contactValue, setContactValue] = useState("");        // email or phone
-  const [form, setForm] = useState({ name: "" });              // name only now
+  const [form, setForm] = useState({ name: "", email: "" });
+  const [phone, setPhone] = useState("");
+  const [channel, setChannel] = useState("email"); // "email" | "phone"
   const [courseTime, setCourseTime] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [busy, setBusy] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
-
-  // keyboard
-  const [kbTarget, setKbTarget] = useState(null); // "name" | "contact" | "time" | null
 
   // countdown
   const [countdown, setCountdown] = useState(0);
@@ -36,92 +31,76 @@ export default function Page() {
   // camera / mediapipe
   const videoRef = useRef(null);
   const frameCanvasRef = useRef(null);
-  const cameraInst = useRef(null);
+  const cameraInstanceRef = useRef(null);
   const latestDetection = useRef(null);
 
-  // init mediapipe when CAMERA
-useEffect(() => {
-  if (step !== Steps.CAMERA) return;
+  // Initialize MediaPipe on CAMERA step via UMD scripts → window globals
+  useEffect(() => {
+    if (step !== Steps.CAMERA) return;
 
-  let cameraInstance;
-  let destroyed = false;
+    let destroyed = false;
 
-  // tiny helper to load UMD scripts
-  const loadScript = (src) =>
-    new Promise((resolve, reject) => {
+    const loadScript = (src) => new Promise((resolve, reject) => {
       const el = document.createElement("script");
-      el.src = src;
-      el.async = true;
-      el.onload = resolve;
-      el.onerror = reject;
+      el.src = src; el.async = true;
+      el.onload = resolve; el.onerror = reject;
       document.head.appendChild(el);
     });
 
-  (async () => {
-    // 1) Load UMD bundles so they attach to window
-    await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js");
-    await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
+    (async () => {
+      // Load UMD bundles that expose window.FaceDetection / window.Camera
+      await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js");
 
-    // 2) Resolve globals safely
-    const FDns = window.FaceDetection || window.faceDetection || window.face_detection;
-    const FaceDetectionCtor = (FDns && (FDns.FaceDetection || FDns)) || null;
+      // Resolve constructors across envs
+      const FDns = window.FaceDetection || window.faceDetection || window.face_detection;
+      const FaceDetectionCtor = (FDns && (FDns.FaceDetection || FDns)) || null;
 
-    const CamNs = window.Camera || window.CameraUtils || window.cameraUtils;
-    const CameraCtor =
-      (CamNs && (CamNs.Camera || CamNs)) || window.Camera || null;
+      const CamNs = window.Camera || window.CameraUtils || window.cameraUtils;
+      const CameraCtor = (CamNs && (CamNs.Camera || CamNs)) || window.Camera || null;
 
-    if (!FaceDetectionCtor) {
-      throw new Error("MediaPipe FaceDetection constructor not found on window.");
-    }
-    if (!CameraCtor) {
-      throw new Error("MediaPipe Camera constructor not found on window.");
-    }
+      if (!FaceDetectionCtor) throw new Error("MediaPipe FaceDetection not found.");
+      if (!CameraCtor) throw new Error("MediaPipe Camera not found.");
 
-    // 3) Wire up detection
-    const video = videoRef.current;
-    const frameCanvas = frameCanvasRef.current;
-    const frameCtx = frameCanvas.getContext("2d");
+      const video = videoRef.current;
+      const frameCanvas = frameCanvasRef.current;
+      const frameCtx = frameCanvas.getContext("2d");
 
-    const fd = new FaceDetectionCtor({
-      locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
+      const fd = new FaceDetectionCtor({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
+      });
+      fd.setOptions({ model: "short", minDetectionConfidence: 0.5 });
+      fd.onResults((res) => {
+        if (destroyed) return;
+        latestDetection.current = (res.detections && res.detections[0]) || null;
+      });
+
+      const onFrame = async () => {
+        if (!video.videoWidth) return;
+        frameCanvas.width = video.videoWidth;
+        frameCanvas.height = video.videoHeight;
+        frameCtx.drawImage(video, 0, 0, frameCanvas.width, frameCanvas.height);
+        await fd.send({ image: frameCanvas });
+      };
+
+      const cam = new CameraCtor(video, { onFrame, width: 1920, height: 1080 });
+      cameraInstanceRef.current = cam;
+      await cam.start();
+    })().catch((err) => {
+      console.error("MediaPipe init failed:", err);
+      setShareMessage("Camera init failed. See console.");
     });
-    fd.setOptions({ model: "short", minDetectionConfidence: 0.5 });
-    fd.onResults((res) => {
-      if (destroyed) return;
-      latestDetection.current = (res.detections && res.detections[0]) || null;
-    });
 
-    const onFrame = async () => {
-      if (!video.videoWidth) return;
-      frameCanvas.width = video.videoWidth;
-      frameCanvas.height = video.videoHeight;
-      frameCtx.drawImage(video, 0, 0, frameCanvas.width, frameCanvas.height);
-      await fd.send({ image: frameCanvas });
+    return () => {
+      destroyed = true;
+      try { cameraInstanceRef.current?.stop(); } catch {}
+      cameraInstanceRef.current = null;
+      clearInterval(countdownTimer.current);
+      setCountdown(0);
     };
+  }, [step]);
 
-    cameraInstance = new CameraCtor(video, {
-      onFrame,
-      width: 1920,
-      height: 1080,
-    });
-
-    await cameraInstance.start();
-  })().catch((err) => {
-    console.error("MediaPipe init failed:", err);
-    // show a friendly hint in UI if you want
-    // setShareMessage("Camera init failed. See console.");
-  });
-
-  return () => {
-    destroyed = true;
-    try { cameraInstance?.stop(); } catch {}
-    clearInterval(countdownTimer.current);
-    setCountdown(0);
-  };
-}, [step]);
-
-
+  // countdown → capture
   const startCountdown = () => {
     if (countdown) return;
     setCountdown(3);
@@ -152,25 +131,55 @@ useEffect(() => {
     setStep(Steps.REVIEW);
   };
 
-  const canShare = useMemo(
-    () => form.name && form.email && courseTime && avatar,
-    [form, courseTime, avatar]
-  );
+  // helpers
+  function normalizePhone(raw) {
+    let s = (raw || "").replace(/[^\d+]/g, "");
+    if (s.startsWith("+")) return s;
+    if (s.length === 10) return "+1" + s; // assume US
+    return s;
+  }
+  function normalizeTime(s){
+    s = (s || "").replace(/[^\d:]/g,"");
+    if (!s.includes(":")) { if (s.length > 2) s = s.slice(0,2) + ":" + s.slice(2,4); }
+    return s.slice(0,5);
+  }
+
+  const canShare = useMemo(() => {
+    const haveBasics = !!(form.name && courseTime && avatar);
+    if (channel === "email") return haveBasics && !!form.email;
+    return haveBasics && !!phone;
+  }, [form, courseTime, avatar, phone, channel]);
 
   const share = async () => {
     setBusy(true); setShareMessage("");
     try {
-      const card = await renderShareCard({ name: form.name, time: courseTime, avatar });
+      const payload =
+        channel === "email"
+          ? {
+              channel: "email",
+              to: form.email,
+              name: form.name,
+              time: courseTime,
+              attachmentDataUrl: await renderShareCard({ name: form.name, time: courseTime, avatar }),
+            }
+          : {
+              channel: "phone",
+              to: normalizePhone(phone),
+              name: form.name,
+              time: courseTime
+            };
+
       const res = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: form.email, subject: "Your - Red Bull HIIT the Beach - Course Card", name: form.name, attachmentDataUrl: card }),
+        body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Mail send failed");
+      if (!res.ok) throw new Error((await res.json()).error || "Send failed");
+
       setStep(Steps.THANKS);
     } catch (e) {
       console.error(e);
-      setShareMessage(e.message || "Couldn’t send email.");
+      setShareMessage(e.message || "Couldn’t send.");
     } finally {
       setBusy(false);
     }
@@ -191,19 +200,67 @@ useEffect(() => {
       {step === Steps.FORM && (
         <div className="screen form-screen">
           <h2 className="title">Tell us about you</h2>
+
+          {/* Choose channel */}
+          <div style={{ marginBottom: "1.2vh" }}>
+            <label style={{ fontWeight: 800, marginRight: 20 }}>
+              <input
+                type="radio" name="channel" value="email"
+                checked={channel === "email"} onChange={() => setChannel("email")}
+                style={{ marginRight: 8 }}
+              />
+              Send via Email
+            </label>
+            <label style={{ fontWeight: 800 }}>
+              <input
+                type="radio" name="channel" value="phone"
+                checked={channel === "phone"} onChange={() => setChannel("phone")}
+                style={{ marginRight: 8 }}
+              />
+              Send via Text Message
+            </label>
+          </div>
+
           <div className="form">
             <label>
               Name
-              <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Jordan Runner" />
+              <input
+                value={form.name}
+                onChange={(e)=>setForm(f=>({...f,name:e.target.value}))}
+                placeholder="Jordan Runner"
+              />
             </label>
-            <label>
-              Email
-              <input value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} type="email" placeholder="you@email.com" />
-            </label>
+
+            {channel === "email" ? (
+              <label>
+                Email
+                <input
+                  value={form.email}
+                  onChange={(e)=>setForm(f=>({...f,email:e.target.value}))}
+                  type="email" placeholder="you@email.com"
+                />
+              </label>
+            ) : (
+              <label>
+                Mobile number
+                <input
+                  value={phone}
+                  onChange={(e)=>setPhone(e.target.value)}
+                  inputMode="tel" placeholder="+1 555 123 4567"
+                />
+              </label>
+            )}
           </div>
+
           <div className="row gap">
             <button className="btn-secondary" onClick={() => setStep(Steps.CTA)}>Back</button>
-            <button className="btn-primary" onClick={() => setStep(Steps.TIME)} disabled={!form.name || !form.email}>Next</button>
+            <button
+              className="btn-primary"
+              onClick={() => setStep(Steps.TIME)}
+              disabled={!form.name || (channel === "email" ? !form.email : !phone)}
+            >
+              Next
+            </button>
           </div>
         </div>
       )}
@@ -213,8 +270,10 @@ useEffect(() => {
           <h2 className="title">Enter your course time</h2>
           <div className="time-card">
             <div className="time-label">TIME</div>
-            <input className="time-input" inputMode="numeric" pattern="[0-9]*" placeholder="00:00"
-              value={courseTime} onChange={(e) => setCourseTime(e.target.value)} />
+            <input
+              className="time-input" inputMode="numeric" pattern="[0-9:]*" placeholder="00:00"
+              value={courseTime} onChange={(e)=>setCourseTime(normalizeTime(e.target.value))}
+            />
             <div className="unit">min</div>
           </div>
           <div className="row gap">
@@ -246,7 +305,7 @@ useEffect(() => {
             <button className="btn-secondary" onClick={() => setStep(Steps.PHOTO_DECIDE)}>Back</button>
             <button className="btn-primary" onClick={startCountdown}>{countdown ? "…" : "Capture"}</button>
           </div>
-          <p className="hint">Tip: stand on the marked spot. The camera is above you — we’ll crop upward automatically so your face is centered.</p>
+          <p className="hint">Tip: the camera is above you — we crop upward automatically so your face is centered.</p>
         </div>
       )}
 
@@ -263,7 +322,9 @@ useEffect(() => {
               <div className="stat"><div className="label">DISTANCE</div><div className="value">—</div><div className="unit alt">km</div></div>
               <div className="stat"><div className="label">PACE</div><div className="value">—</div><div className="unit alt">min/km</div></div>
             </div>
-            <button className="btn-pill share" disabled={!canShare || busy} onClick={share}>{busy ? "Sending..." : "Share"}</button>
+            <button className="btn-pill share" disabled={!canShare || busy} onClick={share}>
+              {busy ? "Sending..." : (channel === "email" ? "Send Email" : "Send Text")}
+            </button>
             {shareMessage && <div className="status">{shareMessage}</div>}
           </div>
           <div className="row gap">
@@ -276,9 +337,14 @@ useEffect(() => {
       {step === Steps.THANKS && (
         <div className="screen center-col">
           <h2 className="hero">Thank you! 🎉</h2>
-          <p className="sub">Your card is on the way to {form.email}.</p>
-          <button className="btn-primary" onClick={() => {
-            setForm({ name: "", email: "" }); setCourseTime(""); setAvatar(null); setShareMessage(""); setStep(Steps.CTA);
+          <p className="sub">
+            {channel === "email"
+              ? `Your card is on the way to ${form.email}.`
+              : `We texted you a link at ${phone}.`}
+          </p>
+          <button className="btn-primary" onClick={()=>{
+            setForm({ name: "", email: "" }); setPhone(""); setChannel("email");
+            setCourseTime(""); setAvatar(null); setShareMessage(""); setStep(Steps.CTA);
           }}>Start Over</button>
         </div>
       )}
@@ -286,16 +352,16 @@ useEffect(() => {
   );
 }
 
-// ---------- helpers ----------
+/* ---- helpers ---- */
 function buildDefaultAvatar(name = "Runner") {
-  const initials = name.split(" ").map(s => s[0] || "").join("").slice(0, 2).toUpperCase();
+  const initials = name.split(" ").map(s=>s[0]||"").join("").slice(0,2).toUpperCase();
   const size = 1024;
   const c = document.createElement("canvas"); c.width = size; c.height = size;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#1F2A44"; ctx.fillRect(0, 0, size, size);
-  ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 10, 0, Math.PI * 2); ctx.fillStyle = "#e03a4e"; ctx.fill();
-  ctx.fillStyle = "white"; ctx.font = "bold 360px Inter, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(initials, size / 2, size / 2 + 10);
+  ctx.fillStyle = "#1F2A44"; ctx.fillRect(0,0,size,size);
+  ctx.beginPath(); ctx.arc(size/2,size/2,size/2-10,0,Math.PI*2); ctx.fillStyle = "#e03a4e"; ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 360px Inter, system-ui, sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText(initials, size/2, size/2 + 10);
   return c.toDataURL("image/png");
 }
 
@@ -306,7 +372,7 @@ function cropFaceFromFrame({ frameCanvas, detection, upBias = 0.24, outSize = 10
   const bw = bbox.width * srcW, bh = bbox.height * srcH;
   const cx = bbox.xCenter * srcW, cy = bbox.yCenter * srcH;
   const scale = 2.0; const side = Math.max(bw, bh) * scale;
-  let x = Math.round(cx - side / 2), y = Math.round(cy - side / 2 - side * upBias);
+  let x = Math.round(cx - side/2), y = Math.round(cy - side/2 - side * upBias);
   x = Math.max(0, Math.min(x, srcW - side)); y = Math.max(0, Math.min(y, srcH - side));
   const off = document.createElement("canvas"); off.width = outSize; off.height = outSize;
   const octx = off.getContext("2d"); octx.imageSmoothingQuality = "high";
