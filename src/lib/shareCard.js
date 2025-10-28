@@ -25,10 +25,6 @@ export async function renderShareCard({ name, time, avatar }) {
   ctx.fillStyle = "#1F2A44"; ctx.font = "700 128px Inter, system-ui, sans-serif";
   ctx.fillText("min", cardX + 128, cardY + 880);
 
-  roundRect(ctx, W/2 - 560, cardY + cardH - 440, 1120, 240, 120, "#cf3c52");
-  ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "800 152px Inter, system-ui, sans-serif";
-  ctx.fillText("Share", W/2, cardY + cardH - 300);
-
   ctx.fillStyle = "#1F2A44"; ctx.textAlign = "center"; ctx.font = "600 112px Inter, system-ui, sans-serif";
   ctx.fillText(name, W/2, H - 112);
 

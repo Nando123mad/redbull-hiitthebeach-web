@@ -43,7 +43,7 @@ export async function POST(req) {
       };
 
       // Log outgoing email details
-      console.log("📧 Sending email message:");
+      console.log("Sending email message:");
       console.log({
         to: emailMessage.to,
         subject: emailMessage.subject,
@@ -52,7 +52,7 @@ export async function POST(req) {
 
       await transporter.sendMail(emailMessage);
 
-      console.log("✅ Email successfully sent to:", to);
+      console.log("Email successfully sent to:", to);
       return Response.json({ ok: true });
     }
 
@@ -91,7 +91,7 @@ export async function POST(req) {
       const bodyText = `Hi${name ? " " + name : ""}! Here’s your course card.`;
 
       // Log outgoing phone message
-      console.log("📱 Sending MMS message:");
+      console.log("Sending MMS message:");
       console.log({
         to: toE164,
         body: bodyText,
@@ -107,7 +107,7 @@ export async function POST(req) {
         mediaUrl: [mediaUrl],
       });
 
-      console.log("✅ MMS successfully sent:", { sid: msg.sid, to: toE164 });
+      console.log("MMS successfully sent:", { sid: msg.sid, to: toE164 });
       return Response.json({ ok: true, sid: msg.sid, mediaUrl });
     }
 

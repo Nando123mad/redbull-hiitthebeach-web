@@ -1,7 +1,8 @@
 :root {
-  --ink: #0f172a;
+  --ink: #e8eef5;
+  --inkBody: #e8eef5;
   --muted: #5b6782;
-  --bg: #e8eef5;
+  --bg: #263156;
   --accent: #e03a4e
 }
 
@@ -19,7 +20,7 @@ body {
   margin: 0;
   background: #000;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: var(--ink);
+  color: var(--inkBody);
   user-select: none;
   overflow: hidden;
   -webkit-touch-callout: none
@@ -46,17 +47,17 @@ body {
   inset: 0
 }
 
-.bg-pattern {
+.bg {
   position: absolute;
   inset: 0;
   background: var(--bg)
 }
 
-.bg-pattern::after {
+.bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, rgba(32, 52, 89, .08) 25%, transparent 25%) 0 0/80px 80px, linear-gradient(300deg, rgba(32, 52, 89, .05) 25%, transparent 25%) 0 0/120px 120px;
+  background: var(--bg);
   pointer-events: none;
   filter: saturate(.8)
 }
@@ -136,9 +137,10 @@ body {
 }
 
 .btn-secondary {
-  background: #fff;
-  color: var(--ink);
-  border: .5vh solid #d4dbe6
+  background: var(--bg);
+  color: var(--inkBody);
+  border: .5vh solid;
+  border-color: var(--inkBody);
 }
 
 .form-screen .form {
@@ -162,7 +164,7 @@ body {
   padding: clamp(12px, 1.6vh, 24px) clamp(14px, 2vh, 28px);
   font-size: clamp(18px, 2.6vh, 40px);
   font-weight: 700;
-  color: var(--ink);
+  color: var(--bg);
   background: #fbfdff
 }
 
